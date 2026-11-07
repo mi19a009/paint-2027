@@ -1,4 +1,7 @@
-/* Copyright (C) 2026 Taichi Murakami. */
+/* Copyright (C) 2026 Taichi Murakami.
+ * Viewer Window クラスを実装します。
+ */
+
 #include "header.h"
 #include "viewer.h"
 

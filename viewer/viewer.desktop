@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Picture Viewer
+Name[ja]=ピクチャ ビューアー
+StartupNotify=true
+Terminal=false
+Exec=viewer %U
+Icon=viewer.svg

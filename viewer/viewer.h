@@ -1,4 +1,6 @@
-/* Copyright (C) 2026 Taichi Murakami. */
+/* Copyright (C) 2026 Taichi Murakami.
+ * Viewer アプリケーション。
+ */
 
 #include <gtk/gtk.h>
 
@@ -10,7 +12,9 @@ G_DECLARE_FINAL_TYPE (ViewerApplication, viewer_application, VIEWER, APPLICATION
 G_DECLARE_FINAL_TYPE (ViewerWindow,      viewer_window,      VIEWER, WINDOW,      GtkApplicationWindow);
 
 /* Viewer Application */
-ViewerApplication *viewer_application_new (const gchar *application_id);
+GSettings         *viewer_application_get_settings (ViewerApplication *application);
+ViewerApplication *viewer_application_new          (const gchar *application_id);
+void               viewer_application_set_settings (ViewerApplication *application, GSettings *settings);
 
 /* Viewer Window */
 GtkWidget *viewer_window_new (GtkApplication *application);

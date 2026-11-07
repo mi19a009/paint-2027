@@ -2,3 +2,4 @@
 bin
 header.h.gch
 obj
+resource.c

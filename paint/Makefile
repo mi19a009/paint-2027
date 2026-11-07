@@ -5,10 +5,12 @@ OUT = ../bin/libpaint.a
 OBJ = $(SRC:%.c=obj/%.o)
 SRC = paint.c
 
-.PHONY: build
+.PHONY: build clean install uninstall
 build: $(OUT)
 clean:
 	@$(RM) $(OUT) $(OBJ)
+install:
+uninstall:
 $(OUT): $(OBJ)
 	@ar rcs $(OUT) $(OBJ)
 $(OBJ): obj/%.o: %.c

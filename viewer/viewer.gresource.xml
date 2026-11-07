@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gresources>
+	<gresource prefix="/com/github/mi19a009/PictureViewer/gtk">
+		<file preprocess="xml-stripblanks">menus.ui</file>
+	</gresource>
+	<gresource prefix="/com/github/mi19a009/PictureViewer/icons/scalable/actions">
+		<file preprocess="xml-stripblanks">viewer.svg</file>
+	</gresource>
+</gresources>
