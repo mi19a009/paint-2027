@@ -7,5 +7,6 @@ export CFLAGS LIBS
 
 .PHONY: build clean
 build clean:
+	@cd locale && $(MAKE) $@
 	@cd paint && $(MAKE) $@
 	@cd viewer && $(MAKE) $@
