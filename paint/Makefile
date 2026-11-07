@@ -7,6 +7,8 @@ SRC = paint.c
 
 .PHONY: build
 build: $(OUT)
+clean:
+	@$(RM) $(OUT) $(OBJ)
 $(OUT): $(OBJ)
 	@ar rcs $(OUT) $(OBJ)
 $(OBJ): obj/%.o: %.c

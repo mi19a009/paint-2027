@@ -6,4 +6,5 @@ int
 paint (void)
 {
 	printf ("Library.\n");
+	return 0;
 }

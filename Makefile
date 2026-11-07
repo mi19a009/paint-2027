@@ -1,11 +1,11 @@
 #!/usr/bin/make
 # Make
 
-LIBS   = -lpaint
-CFLAGS = -I../paint -L../bin
+LIBS   = $(shell pkg-config gtk4 --libs) -lpaint
+CFLAGS = $(shell pkg-config gtk4 --cflags) -Wall -I../paint -L../bin
 export CFLAGS LIBS
 
-.PHONY: build
-build:
+.PHONY: build clean
+build clean:
 	@cd paint && $(MAKE) $@
 	@cd viewer && $(MAKE) $@
