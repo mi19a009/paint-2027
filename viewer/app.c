@@ -149,6 +149,7 @@ create_window (ViewerApplication *application)
 {
 	GtkWidget *window;
 	window = viewer_window_new (GTK_APPLICATION (application));
+	viewer_window_set_settings (VIEWER_WINDOW (window), application->settings);
 	return GTK_WINDOW (window);
 }
 

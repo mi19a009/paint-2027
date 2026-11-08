@@ -17,4 +17,6 @@ ViewerApplication *viewer_application_new          (const gchar *application_id)
 void               viewer_application_set_settings (ViewerApplication *application, GSettings *settings);
 
 /* Viewer Window */
-GtkWidget *viewer_window_new (GtkApplication *application);
+GSettings *viewer_window_get_settings (ViewerWindow *window);
+GtkWidget *viewer_window_new          (GtkApplication *application);
+void       viewer_window_set_settings (ViewerWindow *window, GSettings *settings);
