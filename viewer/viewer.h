@@ -5,6 +5,9 @@
 #include <gtk/gtk.h>
 
 #define VIEWER_APPLICATION_ID       "com.github.mi19a009.PictureViewer"
+#define VIEWER_CANVAS_DEFAULT_ZOOM  100
+#define VIEWER_CANVAS_MAXIMUM_ZOOM  1000
+#define VIEWER_CANVAS_MINIMUM_ZOOM  10
 #define VIEWER_TYPE_APPLICATION (viewer_application_get_type ())
 #define VIEWER_TYPE_WINDOW      (viewer_window_get_type      ())
 
@@ -17,6 +20,9 @@ ViewerApplication *viewer_application_new          (const gchar *application_id)
 void               viewer_application_set_settings (ViewerApplication *application, GSettings *settings);
 
 /* Viewer Window */
+GFile     *viewer_window_get_file     (ViewerWindow *window);
 GSettings *viewer_window_get_settings (ViewerWindow *window);
+void       viewer_window_load         (ViewerWindow *window, GFile *file);
 GtkWidget *viewer_window_new          (GtkApplication *application);
+void       viewer_window_set_file     (ViewerWindow *window, GFile *file);
 void       viewer_window_set_settings (ViewerWindow *window, GSettings *settings);

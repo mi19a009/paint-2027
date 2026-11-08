@@ -35,6 +35,7 @@ static GSettings *create_settings (GApplication *application);
 static GtkWindow *create_window   (ViewerApplication *application);
 static gboolean   get_property    (ViewerApplication *application, guint property_id, GValue *value);
 static void       init_settings   (ViewerApplication *application);
+static void       open            (ViewerWindow *window, GFile *file);
 static gboolean   set_property    (ViewerApplication *application, guint property_id, const GValue *value);
 static gboolean   set_settings    (ViewerApplication *application, GSettings *settings);
 
@@ -118,6 +119,24 @@ viewer_application_init (ViewerApplication *application)
 static void
 viewer_application_open (GApplication *application, GFile **files, int n_files, const char *hint)
 {
+	GtkWindow *window;
+	int n;
+	window = gtk_application_get_active_window (GTK_APPLICATION (application));
+	n = 0;
+
+	if (VIEWER_IS_WINDOW (window) && (viewer_window_get_file (VIEWER_WINDOW (window)) == NULL))
+	{
+		open (VIEWER_WINDOW (window), *files);
+		files++;
+		n++;
+	}
+	while (n < n_files)
+	{
+		window = create_window (VIEWER_APPLICATION (application));
+		open (VIEWER_WINDOW (window), *files);
+		files++;
+		n++;
+	}
 }
 
 static void
@@ -179,6 +198,14 @@ init_settings (ViewerApplication *application)
 	settings = create_settings (G_APPLICATION (application));
 	viewer_application_set_settings (application, settings);
 	g_object_unref (settings);
+}
+
+static void
+open (ViewerWindow *window, GFile *file)
+{
+	viewer_window_set_file (window, file);
+	gtk_window_present (GTK_WINDOW (window));
+	viewer_window_load (window, file);
 }
 
 static gboolean
