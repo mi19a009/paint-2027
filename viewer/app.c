@@ -1,10 +1,6 @@
-/* Copyright (C) 2026 Taichi Murakami.
- * Viewer Application クラスを実装します。
- */
-
+/* Copyright (C) 2026 Taichi Murakami. */
 #include "header.h"
 #include "viewer.h"
-
 #define APPLICATION_FLAGS       G_APPLICATION_HANDLES_OPEN
 #define PROPERTY_APPLICATION_ID "application-id"
 #define PROPERTY_FLAGS          "flags"

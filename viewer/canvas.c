@@ -1,11 +1,6 @@
-/* Copyright (C) 2026 Taichi Murakami.
- * Viewer Canvas クラスを実装します。
- */
-
+/* Copyright (C) 2026 Taichi Murakami. */
 #include "header.h"
-#include "paint.h"
 #include "viewer.h"
-
 #define NOTIFY_ZOOM   "notify::zoom"
 #define PROPERTY_ZOOM "zoom"
 

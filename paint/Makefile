@@ -5,7 +5,7 @@ OUT = ../bin/libpaint.a
 OBJ = $(SRC:%.c=obj/%.o)
 SRC = paint.c
 INC = paint.h header.h.gch
-override CFLAGS += $(shell pkg-config gtk4 --cflags)
+override CFLAGS += $(shell pkg-config gtk4 --cflags) -include header.h
 
 .PHONY: build clean install uninstall
 build: $(OUT)
@@ -18,7 +18,7 @@ $(OUT): $(OBJ)
 $(OBJ): obj/%.o: %.c $(INC)
 	@echo $(abspath $@)
 	@mkdir -p $(dir $@)
-	@$(CC) $(CFLAGS) -c -include header.h -o $@ $<
+	@$(CC) $(CFLAGS) -c -o $@ $<
 header.h.gch: header.h
 	@echo $(abspath $@)
 	@$(CC) $(CFLAGS) -x c-header -o $@ $<

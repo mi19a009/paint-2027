@@ -1,11 +1,6 @@
-/* Copyright (C) 2026 Taichi Murakami.
- * Viewer Window クラスを実装します。
- */
-
+/* Copyright (C) 2026 Taichi Murakami. */
 #include "header.h"
-#include "paint.h"
 #include "viewer.h"
-
 #define ACTION_FULLSCREEN     "fullscreen"
 #define NOTIFY_FILE           "notify::file"
 #define NOTIFY_SETTINGS       "notify::settings"

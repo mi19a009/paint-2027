@@ -1,15 +1,13 @@
 /* Copyright (C) 2026 Taichi Murakami. */
-
 #include "header.h"
 #include "paint.h"
-
 #define BITS_PER_SAMPLE 8
-#define ERROR_FORMAT "%d: %s"
-#define RGBA(r,g,b,a) (((r) & 0xff) | (((g) & 0xff) << 8) | (((b) & 0xff) << 16) | (((a) & 0xff) << 24))
-#define GET_X(n) ((n) & 0xff)
-#define GET_Y(n) (((n) >> 8) & 0xff)
-#define GET_Z(n) (((n) >> 16) & 0xff)
-#define GET_W(n) (((n) >> 24) & 0xff)
+#define ERROR_FORMAT    "%d: %s"
+#define RGBA(r,g,b,a)   (((r) & 0xff) | (((g) & 0xff) << 8) | (((b) & 0xff) << 16) | (((a) & 0xff) << 24))
+#define GET_X(n)        ((n) & 0xff)
+#define GET_Y(n)        (((n) >> 8) & 0xff)
+#define GET_Z(n)        (((n) >> 16) & 0xff)
+#define GET_W(n)        (((n) >> 24) & 0xff)
 
 GdkPixbuf *
 paint_create_pixbuf_from_file (GFile *file, GError **error)

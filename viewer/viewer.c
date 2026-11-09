@@ -1,10 +1,6 @@
-/* Copyright (C) 2026 Taichi Murakami.
- * Viewer アプリケーションのメイン エントリ ポイントです。
- */
-
+/* Copyright (C) 2026 Taichi Murakami. */
 #include "header.h"
 #include "viewer.h"
-
 #define CODESET "UTF-8"
 #define DOMAIN  "paint"
 #define FORMAT  "%d: %s\n"

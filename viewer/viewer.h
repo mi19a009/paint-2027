@@ -1,9 +1,6 @@
-/* Copyright (C) 2026 Taichi Murakami.
- * Viewer アプリケーション。
- */
-
+/* Copyright (C) 2026 Taichi Murakami. */
 #include <gtk/gtk.h>
-
+#include "paint/paint.h"
 #define VIEWER_APPLICATION_ID       "com.github.mi19a009.PictureViewer"
 #define VIEWER_CANVAS_DEFAULT_ZOOM  100
 #define VIEWER_CANVAS_MAXIMUM_ZOOM  1000
