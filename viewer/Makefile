@@ -3,19 +3,21 @@
 
 OUT      = ../bin/viewer
 OBJ      = $(SRC:%.c=obj/%.o)
-SRC      = app.c resource.c viewer.c window.c
-INC      = viewer.h header.h.gch ../paint/paint.h
+SRC      = app.c canvas.c resource.c viewer.c window.c
+INC      = viewer.h ../paint/header.h ../paint/paint.h
 RESOURCE = menus.ui viewer.svg
 PREFIX   = $(HOME)/.local
 DESKTOP  = $(PREFIX)/share/applications/com.github.mi19a009.PictureViewer.desktop
 SCHEMA   = $(PREFIX)/share/glib-2.0/schemas/com.github.mi19a009.PictureViewer.gschema.xml
 EXEC     = $(abspath ../bin)
 ICON     = $(abspath .)
+LIBS     = $(shell pkg-config gtk4 --libs) -lpaint
+override CFLAGS += $(shell pkg-config gtk4 --cflags) -I../paint -L../bin -include ../paint/header.h
 
 .PHONY: build clean install uninstall
 build: $(OUT)
 clean:
-	@$(RM) $(OBJ) resource.c header.h.gch viewer.gschema.valid
+	@$(RM) $(OBJ) resource.c viewer.gschema.valid
 install: $(DESKTOP) $(SCHEMA)
 	@glib-compile-schemas $(dir $(SCHEMA))
 uninstall:
@@ -36,13 +38,10 @@ $(OUT): $(OBJ)
 $(OBJ): obj/%.o: %.c $(INC)
 	@echo $(abspath $@)
 	@mkdir -p $(dir $@)
-	@$(CC) $(CFLAGS) -c -include header.h -o $@ $<
+	@$(CC) $(CFLAGS) -c -o $@ $<
 resource.c: viewer.gresource.xml $(RESOURCE)
 	@echo $(abspath $@)
 	@glib-compile-resources --generate-source --target $@ $<
-header.h.gch: header.h
-	@echo $(abspath $@)
-	@$(CC) $(CFLAGS) -x c-header -o $@ $<
 viewer.gschema.valid: viewer.gschema.xml
 	@echo $(abspath $@)
 	@glib-compile-schemas --strict --dry-run --schema-file=$<

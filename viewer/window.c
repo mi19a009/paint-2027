@@ -3,12 +3,14 @@
  */
 
 #include "header.h"
+#include "paint.h"
 #include "viewer.h"
 
 #define ACTION_FULLSCREEN     "fullscreen"
 #define NOTIFY_FILE           "notify::file"
 #define NOTIFY_SETTINGS       "notify::settings"
 #define NOTIFY_STATE          "notify::state"
+#define NOTIFY_ZOOM           "notify::zoom"
 #define PROPERTY_APPLICATION  "application"
 #define PROPERTY_FILE         "file"
 #define PROPERTY_SETTINGS     "settings"
@@ -31,6 +33,7 @@ typedef enum _ViewerWindowProperties
 struct _ViewerWindow
 {
 	GtkApplicationWindow parent_instance;
+	GtkWidget           *canvas;
 	GFile               *file;
 	GSettings           *settings;
 	gint                 width;
@@ -51,9 +54,11 @@ static void viewer_window_unrealize     (GtkWidget *widget);
 static void     change_file          (GObject *object, GParamSpec *pspec, gpointer user_data);
 static void     change_settings      (GObject *object, GParamSpec *pspec, gpointer user_data);
 static void     change_surface_state (GObject *object, GParamSpec *pspec, gpointer user_data);
+static void     change_canvas_zoom   (GObject *object, GParamSpec *pspec, gpointer user_data);
 static void     connect_surface      (GtkWidget *widget);
 static void     disconnect_surface   (GtkWidget *widget);
 static gboolean get_property         (ViewerWindow *window, guint property_id, GValue *value);
+static void     init_canvas          (ViewerWindow *window);
 static void     load_settings        (ViewerWindow *window);
 static void     save_settings        (ViewerWindow *window);
 static void     set_action_state     (GActionMap *action_map, const char *action_name, gboolean state);
@@ -85,6 +90,16 @@ viewer_window_get_settings (ViewerWindow *window)
 void
 viewer_window_load (ViewerWindow *window, GFile *file)
 {
+	GError *error;
+	error = NULL;
+	g_return_if_fail (VIEWER_IS_WINDOW (window));
+	viewer_canvas_load (VIEWER_CANVAS (window->canvas), file, &error);
+
+	if (error != NULL)
+	{
+		paint_show_error (GTK_WINDOW (window), error);
+		g_error_free (error);
+	}
 }
 
 GtkWidget *
@@ -154,6 +169,7 @@ viewer_window_init (ViewerWindow *window)
 {
 	g_signal_connect (window, NOTIFY_FILE, G_CALLBACK (change_file), NULL);
 	g_signal_connect (window, NOTIFY_SETTINGS, G_CALLBACK (change_settings), NULL);
+	init_canvas (window);
 	update_title (window);
 }
 
@@ -206,6 +222,12 @@ change_surface_state (GObject *object, GParamSpec *pspec, gpointer user_data)
 }
 
 static void
+change_canvas_zoom (GObject *object, GParamSpec *pspec, gpointer user_data)
+{
+	update_title (VIEWER_WINDOW (user_data));
+}
+
+static void
 connect_surface (GtkWidget *widget)
 {
 	GdkSurface *surface;
@@ -241,6 +263,18 @@ get_property (ViewerWindow *window, guint property_id, GValue *value)
 	}
 
 	return invalid;
+}
+
+static void
+init_canvas (ViewerWindow *window)
+{
+	GtkWidget *scrolled, *canvas;
+	scrolled = gtk_scrolled_window_new ();
+	canvas = viewer_canvas_new ();
+	window->canvas = canvas;
+	g_signal_connect (canvas, NOTIFY_ZOOM, G_CALLBACK (change_canvas_zoom), window);
+	gtk_scrolled_window_set_child (GTK_SCROLLED_WINDOW (scrolled), canvas);
+	gtk_window_set_child (GTK_WINDOW (window), scrolled);
 }
 
 static void
@@ -396,8 +430,7 @@ update_title (ViewerWindow *window)
 	if (file != NULL)
 	{
 		base = g_file_get_basename (file);
-		// zoom = viewer_canvas_get_zoom (VIEWER_CANVAS (window->canvas));
-		zoom = 100;
+		zoom = viewer_canvas_get_zoom (VIEWER_CANVAS (window->canvas));
 
 		if (zoom != VIEWER_CANVAS_DEFAULT_ZOOM)
 		{

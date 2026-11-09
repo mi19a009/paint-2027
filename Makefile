@@ -1,12 +1,11 @@
 #!/usr/bin/make
 # Make
 
-LIBS   = $(shell pkg-config gtk4 --libs) -lpaint
-CFLAGS = $(shell pkg-config gtk4 --cflags) -Wall -I../paint -L../bin
+CFLAGS = -Wall
 DEBUG   = -O0 -g -rdynamic
 RELEASE = -O2 -DNDEBUG -DG_DISABLE_ASSERT -DG_DISABLE_CAST_CHECKS
 NATIVE  = -march=native -mtune=native
-export CFLAGS LIBS
+export CFLAGS
 
 .PHONY: build clean install uninstall debug release native
 all: release clean

@@ -9,15 +9,24 @@
 #define VIEWER_CANVAS_MAXIMUM_ZOOM  1000
 #define VIEWER_CANVAS_MINIMUM_ZOOM  10
 #define VIEWER_TYPE_APPLICATION (viewer_application_get_type ())
+#define VIEWER_TYPE_CANVAS      (viewer_canvas_get_type      ())
 #define VIEWER_TYPE_WINDOW      (viewer_window_get_type      ())
 
 G_DECLARE_FINAL_TYPE (ViewerApplication, viewer_application, VIEWER, APPLICATION, GtkApplication);
+G_DECLARE_FINAL_TYPE (ViewerCanvas,      viewer_canvas,      VIEWER, CANVAS,      GtkDrawingArea);
 G_DECLARE_FINAL_TYPE (ViewerWindow,      viewer_window,      VIEWER, WINDOW,      GtkApplicationWindow);
 
 /* Viewer Application */
 GSettings         *viewer_application_get_settings (ViewerApplication *application);
 ViewerApplication *viewer_application_new          (const gchar *application_id);
 void               viewer_application_set_settings (ViewerApplication *application, GSettings *settings);
+
+/* Viewer Canvas */
+gint       viewer_canvas_get_zoom  (ViewerCanvas *canvas);
+void       viewer_canvas_load      (ViewerCanvas *canvas, GFile *file, GError **error);
+GtkWidget *viewer_canvas_new       (void);
+void       viewer_canvas_set_zoom  (ViewerCanvas *canvas, gint zoom);
+GdkPixbuf *viewer_canvas_to_pixbuf (ViewerCanvas *canvas);
 
 /* Viewer Window */
 GFile     *viewer_window_get_file     (ViewerWindow *window);
