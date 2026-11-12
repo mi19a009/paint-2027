@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+	<template class="ViewerViewDialog">
+		<property name="resizable">FALSE</property>
+		<property name="title" translatable="yes">View</property>
+		<property name="titlebar">
+			<object class="GtkHeaderBar">
+				<property name="show-title-buttons">FALSE</property>
+				<child type="start">
+					<object class="GtkButton" id="cancel_button">
+						<property name="action-name">window.close</property>
+						<property name="label" translatable="yes">Cancel</property>
+						<child>
+							<object class="GtkShortcutController">
+								<property name="scope">GTK_SHORTCUT_SCOPE_MANAGED</property>
+								<child>
+									<object class="GtkShortcut">
+										<property name="action">activate</property>
+										<property name="trigger">Escape</property>
+									</object>
+								</child>
+							</object>
+						</child>
+					</object>
+				</child>
+				<child type="end">
+					<object class="GtkButton" id="accept_button">
+						<property name="label" translatable="yes">OK</property>
+						<signal name="clicked" handler="click_accept_button" />
+						<style>
+							<class name="suggested-action" />
+						</style>
+					</object>
+				</child>
+			</object>
+		</property>
+		<child>
+			<object class="GtkBox">
+				<property name="margin-bottom">8</property>
+				<property name="margin-end">8</property>
+				<property name="margin-start">8</property>
+				<property name="margin-top">8</property>
+				<child>
+					<object class="GtkLabel" id="zoom_label">
+						<property name="label" translatable="yes">_Zoom:</property>
+						<property name="margin-end">8</property>
+						<property name="mnemonic-widget">zoom_button</property>
+						<property name="use-underline">TRUE</property>
+					</object>
+				</child>
+				<child>
+					<object class="GtkSpinButton" id="zoom_button">
+						<property name="hexpand">TRUE</property>
+						<property name="adjustment">
+							<object class="GtkAdjustment" id="zoom_adjustment">
+								<property name="lower">10</property>
+								<property name="step-increment">10</property>
+								<property name="upper">1000</property>
+								<property name="value">100</property>
+							</object>
+						</property>
+					</object>
+				</child>
+			</object>
+		</child>
+	</template>
+</interface>

@@ -2,12 +2,58 @@
 <interface>
 	<menu id="menubar">
 		<submenu>
-			<attribute name="label" translatable="yes">_Help</attribute>
+			<attribute name="label" translatable="yes">_File</attribute>
 			<section>
 				<item>
-					<attribute name="action">win.show-help-overlay</attribute>
-					<attribute name="label" translatable="yes">_Keyboard Shortcuts</attribute>
+					<attribute name="action">win.open</attribute>
+					<attribute name="label" translatable="yes">_Open File...</attribute>
 				</item>
+				<item>
+					<attribute name="action">win.print</attribute>
+					<attribute name="label" translatable="yes">_Print...</attribute>
+				</item>
+			</section>
+			<section>
+				<item>
+					<attribute name="action">window.close</attribute>
+					<attribute name="label" translatable="yes">_Close Window</attribute>
+				</item>
+				<item>
+					<attribute name="action">app.quit</attribute>
+					<attribute name="label" translatable="yes">_Quit Picture Viewer</attribute>
+				</item>
+			</section>
+		</submenu>
+		<submenu>
+			<attribute name="label" translatable="yes">_View</attribute>
+			<section>
+				<item>
+					<attribute name="action">win.fullscreen</attribute>
+					<attribute name="label" translatable="yes">_Fullscreen</attribute>
+				</item>
+			</section>
+			<section>
+				<item>
+					<attribute name="action">win.zoom-in</attribute>
+					<attribute name="label" translatable="yes">Zoom _In</attribute>
+				</item>
+				<item>
+					<attribute name="action">win.zoom-out</attribute>
+					<attribute name="label" translatable="yes">Zoom _Out</attribute>
+				</item>
+				<item>
+					<attribute name="action">win.restore-zoom</attribute>
+					<attribute name="label" translatable="yes">Restore Zoom to _Default</attribute>
+				</item>
+				<item>
+					<attribute name="action">win.zoom</attribute>
+					<attribute name="label" translatable="yes">_Zoom...</attribute>
+				</item>
+			</section>
+		</submenu>
+		<submenu>
+			<attribute name="label" translatable="yes">_Help</attribute>
+			<section>
 				<item>
 					<attribute name="action">win.about</attribute>
 					<attribute name="label" translatable="yes">_About</attribute>

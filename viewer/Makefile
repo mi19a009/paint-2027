@@ -1,11 +1,10 @@
 #!/usr/bin/make
 # Make Viewer
-
 OUT      = ../bin/viewer
 OBJ      = $(SRC:%.c=obj/%.o)
-SRC      = app.c canvas.c resource.c viewer.c window.c
-INC      = viewer.h header.h.gch ../paint/paint.h
-RESOURCE = menus.ui viewer.svg
+SRC      = about.c app.c canvas.c resource.c view.c viewer.c window.c
+INCLUDE  = viewer.h header.h.gch ../paint/paint.h
+RESOURCE = menus.ui view.ui viewer.svg
 PREFIX   = $(HOME)/.local
 DESKTOP  = $(PREFIX)/share/applications/com.github.mi19a009.PictureViewer.desktop
 SCHEMA   = $(PREFIX)/share/glib-2.0/schemas/com.github.mi19a009.PictureViewer.gschema.xml
@@ -13,7 +12,6 @@ EXEC     = $(abspath ../bin)
 ICON     = $(abspath .)
 LIBS     = $(shell pkg-config gtk4 --libs) -lpaint
 override CFLAGS += $(shell pkg-config gtk4 --cflags) -I.. -L../bin -include header.h
-
 .PHONY: build clean install uninstall
 build: $(OUT)
 clean:
@@ -35,7 +33,7 @@ $(OUT): $(OBJ)
 	@echo $(abspath $@)
 	@mkdir -p $(dir $@)
 	@$(CC) $(CFLAGS) -o $@ $(OBJ) $(LIBS)
-$(OBJ): obj/%.o: %.c $(INC)
+$(OBJ): obj/%.o: %.c $(INCLUDE)
 	@echo $(abspath $@)
 	@mkdir -p $(dir $@)
 	@$(CC) $(CFLAGS) -c -o $@ $<

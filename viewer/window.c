@@ -1,7 +1,13 @@
 /* Copyright (C) 2026 Taichi Murakami. */
 #include "header.h"
 #include "viewer.h"
+#define ACTION_ABOUT          "about"
 #define ACTION_FULLSCREEN     "fullscreen"
+#define ACTION_RESTORE_ZOOM   "restore-zoom"
+#define ACTION_UNFULLSCREEN   "unfullscreen"
+#define ACTION_ZOOM           "zoom"
+#define ACTION_ZOOM_IN        "zoom-in"
+#define ACTION_ZOOM_OUT       "zoom-out"
 #define NOTIFY_FILE           "notify::file"
 #define NOTIFY_SETTINGS       "notify::settings"
 #define NOTIFY_STATE          "notify::state"
@@ -13,10 +19,12 @@
 #define SETTINGS_HEIGHT       "window-height"
 #define SETTINGS_MAXIMIZED    "window-maximized"
 #define SETTINGS_WIDTH        "window-width"
+#define SIGNAL_RESPONSE       "response"
 #define TITLE                 gettext ("Picture Viewer")
 #define TITLE_FORMAT          "%s - %s"
 #define TITLE_FORMAT_ZOOM     "%d%% %s - %s"
 #define TITLE_MAX             128
+#define ZOOM_FACTOR           1.25
 
 typedef enum _ViewerWindowProperties
 {
@@ -24,6 +32,14 @@ typedef enum _ViewerWindowProperties
 	PROPID_FILE,
 	PROPID_SETTINGS,
 } ViewerWindowProperties;
+
+typedef struct _ViewerWindowActionEntry
+{
+	const char *name;
+	void (*activate) (GSimpleAction *action, GVariant *parameter, gpointer user_data);
+	const char *parameter_type;
+	const char *state;
+} ViewerWindowActionEntry;
 
 struct _ViewerWindow
 {
@@ -46,27 +62,63 @@ static void viewer_window_set_property  (GObject *object, guint property_id, con
 static void viewer_window_size_allocate (GtkWidget *widget, int width, int height, int baseline);
 static void viewer_window_unrealize     (GtkWidget *widget);
 
-static void     change_file          (GObject *object, GParamSpec *pspec, gpointer user_data);
-static void     change_settings      (GObject *object, GParamSpec *pspec, gpointer user_data);
-static void     change_surface_state (GObject *object, GParamSpec *pspec, gpointer user_data);
-static void     change_canvas_zoom   (GObject *object, GParamSpec *pspec, gpointer user_data);
-static void     connect_surface      (GtkWidget *widget);
-static void     disconnect_surface   (GtkWidget *widget);
-static gboolean get_property         (ViewerWindow *window, guint property_id, GValue *value);
-static void     init_canvas          (ViewerWindow *window);
-static void     load_settings        (ViewerWindow *window);
-static void     save_settings        (ViewerWindow *window);
-static void     set_action_state     (GActionMap *action_map, const char *action_name, gboolean state);
-static gboolean set_file             (ViewerWindow *window, GFile *file);
-static gboolean set_property         (ViewerWindow *window, guint property_id, const GValue *value);
-static gboolean set_settings         (ViewerWindow *window, GSettings *settings);
-static void     update_size          (ViewerWindow *window);
-static void     update_surface_state (ViewerWindow *window, GdkSurface *surface);
-static void     update_title (ViewerWindow *window);
+static void     activate_about         (GSimpleAction *action, GVariant *parameter, gpointer user_data);
+static void     activate_fullscreen    (GSimpleAction *action, GVariant *parameter, gpointer user_data);
+static void     activate_restore_zoom  (GSimpleAction *action, GVariant *parameter, gpointer user_data);
+static void     activate_unfullscreen  (GSimpleAction *action, GVariant *parameter, gpointer user_data);
+static void     activate_zoom          (GSimpleAction *action, GVariant *parameter, gpointer user_data);
+static void     activate_zoom_in       (GSimpleAction *action, GVariant *parameter, gpointer user_data);
+static void     activate_zoom_out      (GSimpleAction *action, GVariant *parameter, gpointer user_data);
+static void     change_file            (GObject *object, GParamSpec *pspec, gpointer user_data);
+static void     change_settings        (GObject *object, GParamSpec *pspec, gpointer user_data);
+static void     change_surface_state   (GObject *object, GParamSpec *pspec, gpointer user_data);
+static void     change_canvas_zoom     (GObject *object, GParamSpec *pspec, gpointer user_data);
+static void     connect_surface        (GtkWidget *widget);
+static void     disconnect_surface     (GtkWidget *widget);
+static gboolean get_property           (ViewerWindow *window, guint property_id, GValue *value);
+static void     init_actions           (ViewerWindow *window);
+static void     init_canvas            (ViewerWindow *window);
+static void     load_settings          (ViewerWindow *window);
+static void     respond_view_dialog    (ViewerViewDialog *dialog, gpointer user_data);
+static void     save_settings          (ViewerWindow *window);
+static void     set_action_enabled     (GActionMap *action_map, const char *action_name, gboolean enabled);
+static void     set_action_state       (GActionMap *action_map, const char *action_name, gboolean state);
+static gboolean set_file               (ViewerWindow *window, GFile *file);
+static gboolean set_property           (ViewerWindow *window, guint property_id, const GValue *value);
+static gboolean set_settings           (ViewerWindow *window, GSettings *settings);
+static void     show_about_dialog      (GtkWindow *window);
+static void     show_view_dialog       (ViewerWindow *window);
+static void     update_action_enabled  (ViewerWindow *window);
+static void     update_size            (ViewerWindow *window);
+static void     update_surface_state   (ViewerWindow *window, GdkSurface *surface);
+static void     update_title           (ViewerWindow *window);
 
 G_DEFINE_FINAL_TYPE (ViewerWindow, viewer_window, GTK_TYPE_APPLICATION_WINDOW);
-#define PSPEC_FILE     g_param_spec_object ("file",     "File",     "Document file.",        G_TYPE_SETTINGS, G_PARAM_READWRITE)
-#define PSPEC_SETTINGS g_param_spec_object ("settings", "Settings", "Application settings.", G_TYPE_SETTINGS, G_PARAM_READWRITE)
+#define N_ACTION_ENTRIES G_N_ELEMENTS (ACTION_ENTRIES)
+#define N_ACTION_NAMES   G_N_ELEMENTS (ACTION_NAMES)
+#define PSPEC_FILE       g_param_spec_object ("file",     "File",     "Document file.",        G_TYPE_SETTINGS, G_PARAM_READWRITE)
+#define PSPEC_SETTINGS   g_param_spec_object ("settings", "Settings", "Application settings.", G_TYPE_SETTINGS, G_PARAM_READWRITE)
+
+static const ViewerWindowActionEntry
+ACTION_ENTRIES [] =
+{
+	{ ACTION_ABOUT,        activate_about,        NULL, NULL    },
+	{ ACTION_FULLSCREEN,   activate_fullscreen,   NULL, "false" },
+	{ ACTION_RESTORE_ZOOM, activate_restore_zoom, NULL, NULL    },
+	{ ACTION_UNFULLSCREEN, activate_unfullscreen, NULL, NULL    },
+	{ ACTION_ZOOM,         activate_zoom,         NULL, NULL    },
+	{ ACTION_ZOOM_IN,      activate_zoom_in,      NULL, NULL    },
+	{ ACTION_ZOOM_OUT,     activate_zoom_out,     NULL, NULL    },
+};
+
+static const char *
+ACTION_NAMES [] =
+{
+	ACTION_RESTORE_ZOOM,
+	ACTION_ZOOM,
+	ACTION_ZOOM_IN,
+	ACTION_ZOOM_OUT,
+};
 
 GFile *
 viewer_window_get_file (ViewerWindow *window)
@@ -164,7 +216,9 @@ viewer_window_init (ViewerWindow *window)
 {
 	g_signal_connect (window, NOTIFY_FILE, G_CALLBACK (change_file), NULL);
 	g_signal_connect (window, NOTIFY_SETTINGS, G_CALLBACK (change_settings), NULL);
+	init_actions (window);
 	init_canvas (window);
+	update_action_enabled (window);
 	update_title (window);
 }
 
@@ -199,8 +253,70 @@ viewer_window_unrealize (GtkWidget *widget)
 }
 
 static void
+activate_about (GSimpleAction *action, GVariant *parameter, gpointer user_data)
+{
+	show_about_dialog (GTK_WINDOW (user_data));
+}
+
+static void
+activate_fullscreen (GSimpleAction *action, GVariant *parameter, gpointer user_data)
+{
+	if (VIEWER_WINDOW (user_data)->fullscreen)
+	{
+		gtk_window_unfullscreen (GTK_WINDOW (user_data));
+	}
+	else
+	{
+		gtk_window_fullscreen (GTK_WINDOW (user_data));
+	}
+}
+
+static void
+activate_restore_zoom (GSimpleAction *action, GVariant *parameter, gpointer user_data)
+{
+	GtkWidget *canvas;
+	canvas = VIEWER_WINDOW (user_data)->canvas;
+	viewer_canvas_set_zoom (VIEWER_CANVAS (canvas), VIEWER_CANVAS_DEFAULT_ZOOM);
+}
+
+static void
+activate_unfullscreen (GSimpleAction *action, GVariant *parameter, gpointer user_data)
+{
+	gtk_window_unfullscreen (GTK_WINDOW (user_data));
+}
+
+static void
+activate_zoom (GSimpleAction *action, GVariant *parameter, gpointer user_data)
+{
+	show_view_dialog (VIEWER_WINDOW (user_data));
+}
+
+static void
+activate_zoom_in (GSimpleAction *action, GVariant *parameter, gpointer user_data)
+{
+	GtkWidget *canvas;
+	int zoom;
+	canvas = VIEWER_WINDOW (user_data)->canvas;
+	zoom = viewer_canvas_get_zoom (VIEWER_CANVAS (canvas));
+	zoom = (int) (zoom * ZOOM_FACTOR);
+	viewer_canvas_set_zoom (VIEWER_CANVAS (canvas), zoom);
+}
+
+static void
+activate_zoom_out (GSimpleAction *action, GVariant *parameter, gpointer user_data)
+{
+	GtkWidget *canvas;
+	int zoom;
+	canvas = VIEWER_WINDOW (user_data)->canvas;
+	zoom = viewer_canvas_get_zoom (VIEWER_CANVAS (canvas));
+	zoom = (int) (zoom / ZOOM_FACTOR);
+	viewer_canvas_set_zoom (VIEWER_CANVAS (canvas), zoom);
+}
+
+static void
 change_file (GObject *object, GParamSpec *pspec, gpointer user_data)
 {
+	update_action_enabled (VIEWER_WINDOW (object));
 	update_title (VIEWER_WINDOW (object));
 }
 
@@ -261,6 +377,25 @@ get_property (ViewerWindow *window, guint property_id, GValue *value)
 }
 
 static void
+init_actions (ViewerWindow *window)
+{
+	const ViewerWindowActionEntry *src;
+	GActionEntry *dest;
+	GActionEntry entries [N_ACTION_ENTRIES];
+	int n;
+	memset (entries, 0, sizeof entries);
+	src = ACTION_ENTRIES;
+	dest = entries;
+
+	for (n = 0; n < N_ACTION_ENTRIES; n++)
+	{
+		memcpy (dest++, src++, sizeof (ViewerWindowActionEntry));
+	}
+
+	g_action_map_add_action_entries (G_ACTION_MAP (window), entries, N_ACTION_ENTRIES, window);
+}
+
+static void
 init_canvas (ViewerWindow *window)
 {
 	GtkWidget *scrolled, *canvas;
@@ -297,6 +432,17 @@ load_settings (ViewerWindow *window)
 }
 
 static void
+respond_view_dialog (ViewerViewDialog *dialog, gpointer user_data)
+{
+	GtkWidget *canvas;
+	int zoom;
+	canvas = VIEWER_WINDOW (user_data)->canvas;
+	zoom = viewer_view_dialog_get_zoom (dialog);
+	gtk_window_close (GTK_WINDOW (dialog));
+	viewer_canvas_set_zoom (VIEWER_CANVAS (canvas), zoom);
+}
+
+static void
 save_settings (ViewerWindow *window)
 {
 	GSettings *settings;
@@ -307,6 +453,18 @@ save_settings (ViewerWindow *window)
 		g_settings_set_int (settings, SETTINGS_WIDTH, window->width);
 		g_settings_set_int (settings, SETTINGS_HEIGHT, window->height);
 		g_settings_set_boolean (settings, SETTINGS_MAXIMIZED, window->maximized);
+	}
+}
+
+static void
+set_action_enabled (GActionMap *action_map, const char *action_name, gboolean enabled)
+{
+	GAction *action;
+	action = g_action_map_lookup_action (action_map, action_name);
+
+	if (G_IS_SIMPLE_ACTION (action))
+	{
+		g_simple_action_set_enabled (G_SIMPLE_ACTION (action), enabled);
 	}
 }
 
@@ -392,6 +550,45 @@ set_settings (ViewerWindow *window, GSettings *settings)
 	}
 
 	return changed;
+}
+
+static void
+show_about_dialog (GtkWindow *window)
+{
+	GtkWidget *dialog;
+	dialog = viewer_about_dialog_new ();
+	gtk_window_set_modal (GTK_WINDOW (dialog), TRUE);
+	gtk_window_set_transient_for (GTK_WINDOW (dialog), window);
+	gtk_window_present (GTK_WINDOW (dialog));
+}
+
+static void
+show_view_dialog (ViewerWindow *window)
+{
+	GtkWidget *dialog;
+	dialog = viewer_view_dialog_new ();
+	gtk_window_set_modal (GTK_WINDOW (dialog), TRUE);
+	gtk_window_set_transient_for (GTK_WINDOW (dialog), GTK_WINDOW (window));
+	viewer_view_dialog_set_zoom (VIEWER_VIEW_DIALOG (dialog), viewer_canvas_get_zoom (VIEWER_CANVAS (window->canvas)));
+	g_signal_connect (dialog, SIGNAL_RESPONSE, G_CALLBACK (respond_view_dialog), window);
+	gtk_window_present (GTK_WINDOW (dialog));
+}
+
+static void
+update_action_enabled (ViewerWindow *window)
+{
+	const char **action_names;
+	GActionMap *action_map;
+	int n;
+	gboolean enabled;
+	action_names = ACTION_NAMES;
+	action_map = G_ACTION_MAP (window);
+	enabled = window->file != NULL;
+
+	for (n = 0; n < N_ACTION_NAMES; n++)
+	{
+		set_action_enabled (action_map, *(action_names++), enabled);
+	}
 }
 
 static void
